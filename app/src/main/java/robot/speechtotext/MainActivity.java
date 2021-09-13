@@ -23,21 +23,25 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     Button Start;
-    Button Forward;
-    Button Left;
-    Button Right;
-    Button Back;
-    Button Stop;
+    ImageButton Forward;
+    ImageButton Left;
+    ImageButton Right;
+    ImageButton Back;
+    ImageButton Stop;
+    ImageButton Send;
     ActionBar actionBar;
     ImageButton speechButton;
     EditText speechText;
+    EditText commandText;
     MqttAndroidClient client;
     private  static final int RECOGNIZER_RESULT = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,13 +50,15 @@ public class MainActivity extends AppCompatActivity {
         actionBar.hide();
         speechButton = findViewById(R.id.speechbutton);
         speechText = findViewById(R.id.speechtext);
+        commandText = findViewById(R.id.commandtext);
 
         Start = findViewById(R.id.start);
-        Forward = findViewById(R.id.forward);
-        Left = findViewById(R.id.left);
-        Right = findViewById(R.id.right);
-        Back = findViewById(R.id.back);
-        Stop = findViewById(R.id.stop);
+        Forward = findViewById(R.id.btn_fwd);
+        Left = findViewById(R.id.btn_left);
+        Right = findViewById(R.id.btn_right);
+        Back = findViewById(R.id.btn_bwd);
+        Stop = findViewById(R.id.btn_stop);
+        Send = findViewById(R.id.sendcommandbutton);
 
         Start.setOnClickListener(mLisstener);
         Forward.setOnClickListener(mLisstener);
@@ -61,9 +67,12 @@ public class MainActivity extends AppCompatActivity {
         Back.setOnClickListener(mLisstener);
         Stop.setOnClickListener(mLisstener);
         speechButton.setOnClickListener(mLisstener);
+        Send.setOnClickListener(mLisstener);
         String clientId = MqttClient.generateClientId();
         client = new MqttAndroidClient(this.getApplicationContext(), "tcp://citlab.myftp.org:1883",
                         clientId);
+//        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://broker.hivemq.com:1883",
+//                clientId);
 
         try {
             IMqttToken token = client.connect();
@@ -95,49 +104,49 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             int id = view.getId();
             Start.setTextColor(Color.BLACK);    Start.setSelected(false);
-            Forward.setTextColor(Color.BLACK);  Forward.setSelected(false);
-            Left.setTextColor(Color.BLACK);     Left.setSelected(false);
-            Right.setTextColor(Color.BLACK);    Right.setSelected(false);
-            Back.setTextColor(Color.BLACK);     Back.setSelected(false);
-            Stop.setTextColor(Color.BLACK);     Stop.setSelected(false);
+//            Forward.setTextColor(Color.BLACK);  Forward.setSelected(false);
+//            Left.setTextColor(Color.BLACK);     Left.setSelected(false);
+//            Right.setTextColor(Color.BLACK);    Right.setSelected(false);
+//            Back.setTextColor(Color.BLACK);     Back.setSelected(false);
+//            Stop.setTextColor(Color.BLACK);     Stop.setSelected(false);
             speechButton.setSelected(false);
 
             switch (id){
                 case R.id.start:
                     speechText.setText("Start");
-                    pub("Chao");
+                    pub("Start");
                     Start.setTextColor(Color.RED);
                     Start.setSelected(true);
                     break;
-                case R.id.forward:
+                case R.id.btn_fwd:
                     speechText.setText("Forward");
-                    pub("Chao");
-                    Forward.setTextColor(Color.RED);
-                    Forward.setSelected(true);
+                    pub("Forward");
+//                    Forward.setTextColor(Color.RED);
+//                    Forward.setSelected(true);
                     break;
-                case R.id.left:
+                case R.id.btn_left:
                     speechText.setText("Left");
-                    pub("Chao");
-                    Left.setTextColor(Color.RED);
-                    Left.setSelected(true);
+                    pub("Left");
+//                    Left.setTextColor(Color.RED);
+//                    Left.setSelected(true);
                     break;
-                case R.id.right:
+                case R.id.btn_right:
                     speechText.setText("Right");
-                    pub("Chao");
-                    Right.setTextColor(Color.RED);
-                    Right.setSelected(true);
+                    pub("Right");
+//                    Right.setTextColor(Color.RED);
+//                    Right.setSelected(true);
                     break;
-                case R.id.back:
+                case R.id.btn_bwd:
                     speechText.setText("Back");
-                    pub("Chao");
-                    Back.setTextColor(Color.RED);
-                    Back.setSelected(true);
+                    pub("Back");
+//                    Back.setTextColor(Color.RED);
+//                    Back.setSelected(true);
                     break;
-                case R.id.stop:
+                case R.id.btn_stop:
                     speechText.setText("Stop");
-                    pub("Chao");
-                    Stop.setTextColor(Color.RED);
-                    Stop.setSelected(true);
+                    pub("Stop");
+//                    Stop.setTextColor(Color.RED);
+//                    Stop.setSelected(true);
                     break;
                 case R.id.speechbutton:
                     Intent speechIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -147,6 +156,9 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(speechIntent,RECOGNIZER_RESULT);
                     speechText.setText("");
                     speechButton.setSelected(true);
+                case R.id.sendcommandbutton:
+                    speechText.setText(commandText.getText().toString());
+                    pub(commandText.getText().toString());
                 default:
                     break;
             }
@@ -154,18 +166,25 @@ public class MainActivity extends AppCompatActivity {
     };
 
     void pub(String content){
-        String topic = "garden1/sensor1";
+//        String topic = "garden1/sensor1";
+        String topic = "robobits/test";
         payload = speechText.getText().toString();
         byte[] encodedPayload = new byte[0];
         try {
             encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
+
             client.publish(topic, message);
+
         } catch (UnsupportedEncodingException | MqttException e) {
             e.printStackTrace();
         }
     }
 
+
+    public void messageArrived(String topic, MqttMessage message) throws MqttException {
+        System.out.println(String.format("[%s] %s", topic, new String(message.getPayload())));
+    }
 
 
     @Override
