@@ -87,7 +87,8 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:background="#FF1D1D"
-
+            android:src="@drawable/stop"
+           android:scaleType="centerInside"
             app:layout_constraintTop_toBottomOf="@+id/btn_fwd"
             app:layout_constraintLeft_toRightOf ="@id/btn_left"
             app:layout_constraintRight_toLeftOf="@id/btn_right"
