@@ -42,12 +42,23 @@ public class MainActivity extends AppCompatActivity {
     MqttAndroidClient client;
     private  static final int RECOGNIZER_RESULT = 1;
 
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         actionBar = getSupportActionBar();
-        actionBar.hide();
+        actionBar.setTitle("Robot Controller");
+
+        Intent intent = this.getIntent();
+        String schoolName = intent.getStringExtra("SCHOOLNAME");
+        String groupName = intent.getStringExtra("GROUPNAME");
+        Log.d("name", schoolName);
+
+
         speechButton = findViewById(R.id.speechbutton);
         speechText = findViewById(R.id.speechtext);
         commandText = findViewById(R.id.commandtext);
